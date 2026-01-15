@@ -34,8 +34,6 @@ const GOLSimulation = () => {
   useEffect(() => {
     currentRenderTarget.current = sceneRenderTarget;
     nextRenderTarget.current = sceneRenderTarget2;
-    // Reset simulation on resize
-    firstFrame.current = true;
   }, [sceneRenderTarget, sceneRenderTarget2]);
 
   // Camera for the simulation pass
@@ -81,20 +79,24 @@ const GOLSimulation = () => {
     });
   }, []);
 
-  // Track if it's the first frame to handle initialization
-  const firstFrame = useRef(true);
+  // Update refs when FBOs change and initialize the current render target
+  useEffect(() => {
+    currentRenderTarget.current = sceneRenderTarget;
+    nextRenderTarget.current = sceneRenderTarget2;
+    // Render the initial texture into the current render target so the sim starts seeded
+    // eslint-disable-next-line react-hooks/immutability
+    simMaterial.uniforms.uTexture.value = initialTexture;
+    gl.setRenderTarget(currentRenderTarget.current);
+    gl.render(scene, camera);
+    gl.setRenderTarget(null);
+  }, [sceneRenderTarget, sceneRenderTarget2, simMaterial, initialTexture, gl, scene, camera]);
 
   useFrame(() => {
     // 1. Simulation Step
 
-    if (firstFrame.current) {
-      // eslint-disable-next-line react-hooks/immutability
-      simMaterial.uniforms.uTexture.value = initialTexture;
-      firstFrame.current = false;
-    } else {
-      // eslint-disable-next-line react-hooks/immutability
-      simMaterial.uniforms.uTexture.value = currentRenderTarget.current.texture;
-    }
+    // Use the current render target as the input texture for the simulation step
+    // eslint-disable-next-line react-hooks/immutability
+    simMaterial.uniforms.uTexture.value = currentRenderTarget.current.texture;
 
     // Render to the next buffer
     gl.setRenderTarget(nextRenderTarget.current);
