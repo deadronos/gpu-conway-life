@@ -24,6 +24,8 @@ export function NeonMicroCityDemo() {
   const ticksPerSecond = useNeonCityStore((s) => s.ticksPerSecond)
   const stepsPerTick = useNeonCityStore((s) => s.stepsPerTick)
   const ageDecayPerStep = useNeonCityStore((s) => s.ageDecayPerStep)
+  const ageDurationSeconds = useNeonCityStore((s) => s.ageDurationSeconds)
+  const useAgeDuration = useNeonCityStore((s) => s.useAgeDuration)
   const wrapEdges = useNeonCityStore((s) => s.wrapEdges)
   const emissiveGain = useNeonCityStore((s) => s.emissiveGain)
   const heightScale = useNeonCityStore((s) => s.heightScale)
@@ -32,6 +34,7 @@ export function NeonMicroCityDemo() {
   const bloomSmoothing = useNeonCityStore((s) => s.bloomSmoothing)
   const brushRadius = useNeonCityStore((s) => s.brushRadius)
   const showStats = useNeonCityStore((s) => s.showStats)
+  const cellSize = useNeonCityStore((s) => s.cellSize)
 
   useControls({
     Simulation: folder(
@@ -53,6 +56,24 @@ export function NeonMicroCityDemo() {
           max: 8,
           step: 1,
           onChange: (v: number) => setPartial({ stepsPerTick: v }),
+        },
+        cellSize: {
+          value: cellSize,
+          min: 1,
+          max: 50,
+          step: 1,
+          onChange: (v: number) => setPartial({ cellSize: v }),
+        },
+        useAgeDuration: {
+          value: useAgeDuration,
+          onChange: (v: boolean) => setPartial({ useAgeDuration: v }),
+        },
+        ageDurationSeconds: {
+          value: ageDurationSeconds,
+          min: 0.5,
+          max: 60,
+          step: 0.5,
+          onChange: (v: number) => setPartial({ ageDurationSeconds: v }),
         },
         ageDecayPerStep: {
           value: ageDecayPerStep,
@@ -83,7 +104,7 @@ export function NeonMicroCityDemo() {
         heightScale: {
           value: heightScale,
           min: 0.5,
-          max: 10,
+          max: 50,
           step: 0.1,
           onChange: (v: number) => setPartial({ heightScale: v }),
         },
@@ -144,6 +165,7 @@ export function NeonMicroCityDemo() {
 
   // Runtime feature detection for float render targets using a temporary WebGL2 context
   const floatRTSupported = useNeonCityStore((s) => s.floatRTSupported)
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     try {
@@ -160,7 +182,7 @@ export function NeonMicroCityDemo() {
   return (
     <>
       <div className="canvasWrap" data-testid="canvasWrap">
-        <Canvas camera={{ position: [200, 250, 200], fov: 45 }} dpr={[1, 2]}>
+        <Canvas camera={{ position: [200 * cellSize, 250 * cellSize, 200 * cellSize], fov: 45 }} dpr={[1, 2]}>
           <color attach="background" args={[0x050508]} />
           <ambientLight intensity={0.2} />
           <OrbitControls makeDefault enablePan={false} maxPolarAngle={Math.PI * 0.49} />
@@ -175,7 +197,7 @@ export function NeonMicroCityDemo() {
                 brushUvRef={brushUvRef}
               />
 
-              {stateTexture ? <NeonCity gridSize={GRID_SIZE} stateTexture={stateTexture} /> : null}
+              {stateTexture ? <NeonCity gridSize={GRID_SIZE} stateTexture={stateTexture} cellSize={cellSize} /> : null}
             </>
           ) : null}
 
@@ -184,17 +206,23 @@ export function NeonMicroCityDemo() {
             position={[0, 0, 0]}
             onPointerDown={(e) => {
               brushDownRef.current = true
-              brushUvRef.current.set(e.uv?.x ?? 0.5, e.uv?.y ?? 0.5)
+              // Invert Y because texture v-space (0..1) in shader assumes bottom-left origin
+              // while pointer UV may use top-left depending on camera/geometry orientation.
+              const ux = e.uv?.x ?? 0.5
+              const uy = e.uv?.y ?? 0.5
+              brushUvRef.current.set(ux, 1 - uy)
             }}
             onPointerUp={() => {
               brushDownRef.current = false
             }}
             onPointerMove={(e) => {
               if (!brushDownRef.current) return
-              brushUvRef.current.set(e.uv?.x ?? 0.5, e.uv?.y ?? 0.5)
+              const ux = e.uv?.x ?? 0.5
+              const uy = e.uv?.y ?? 0.5
+              brushUvRef.current.set(ux, 1 - uy)
             }}
           >
-            <planeGeometry args={[GRID_SIZE, GRID_SIZE]} />
+            <planeGeometry args={[GRID_SIZE * cellSize, GRID_SIZE * cellSize]} />
             <meshBasicMaterial transparent opacity={0} />
           </mesh>
 

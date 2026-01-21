@@ -12,9 +12,11 @@ This change implements a "Neon Micro-City" visualization where each alive Conway
 ### Rendering
 
 - One `InstancedMesh` (boxes) with `gridSize * gridSize` instances.
-- Each instance has a **1x1 world unit footprint** (length and width).
+- Each instance has a configurable footprint (length and width); the **default is 10x10 world units**.
 - Per-instance sampling uses `gl_InstanceID` to derive a UV into the simulation texture.
-- Age drives building height (scaled by `uHeightScale`) and a neon color ramp; output is HDR-scaled via `emissiveGain` so the bloom pass can pick it up.
+- **Aging Logic**: Age ($t$) is biased using a power curve (e.g., $t^{1.5}$) to avoid "plateaus." This ensures buildings spend more time in the mature red phase and less time at peak cyan brightness.
+- **Color Mapping**: Fresh cells ($t=1.0$) are bright cyan-white; aging cells transition through magenta to a dark, deep red ($t=0.0$).
+- Output is HDR-scaled via `emissiveGain`; scaling and height follow the non-linear curve.
 
 ### Postprocessing
 

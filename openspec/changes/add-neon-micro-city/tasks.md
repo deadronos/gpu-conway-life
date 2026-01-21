@@ -9,7 +9,10 @@
 - [x] 1.5 Add unit tests and visual snapshot tests
 - [x] 1.6 Add docs and update `idea.md` → `design.md` with implementation notes
 - [x] 1.7 Add runtime feature detection & graceful fallback for unsupported browsers
-- [x] 1.8 Update instance geometry to 1x1 footprint and adjust camera for new scale
+- [x] 1.8 Update instance geometry to 10x10 default footprint and adjust camera for new scale
+- [x] 1.9 Fine-tune color ramp and intensity for "darker/redder" aging effect
+- [x] 1.10 Add configurable `cellSize` with UI control (default 10x10)
+- [x] 1.11 Add Playwright visual test for `cellSize` scaling
 
 ## 2. Validation
 

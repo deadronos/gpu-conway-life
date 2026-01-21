@@ -7,6 +7,7 @@ export type NeonCitySettings = {
 
   // Simulation
   ageDecayPerStep: number
+  ageDurationSeconds: number
   wrapEdges: boolean
 
   // Rendering
@@ -23,6 +24,14 @@ export type NeonCitySettings = {
 
   // Debug
   showStats: boolean
+  // Runtime feature detection
+  floatRTSupported: boolean
+  // Age configuration
+  ageDurationSeconds: number
+  useAgeDuration: boolean
+
+  // Cell size (world units)
+  cellSize: number
 
   // Actions
   resetNonce: number
@@ -38,6 +47,10 @@ export const useNeonCityStore = create<NeonCitySettings>((set) => ({
   stepsPerTick: 1,
 
   ageDecayPerStep: 0.03,
+  // Age duration in seconds (controls how long a cell ages from 1 -> 0)
+  ageDurationSeconds: 4.0,
+  useAgeDuration: true,
+  cellSize: 10.0,
   wrapEdges: true,
 
   emissiveGain: 5.0,

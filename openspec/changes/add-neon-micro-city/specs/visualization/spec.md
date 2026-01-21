@@ -9,7 +9,7 @@ The system SHALL render active cells as instanced meshes (boxes), using a simula
 #### Scenario: City block geometry
 
 - **WHEN** the scene initializes
-- **THEN** each instance SHALL have a 1x1 world unit footprint (length x width)
+- **THEN** each instance SHALL have a configurable footprint with a **default of 10x10 world units** (length x width)
 - **AND** the height SHALL be proportional to the cell's age (freshly born = tallest)
 
 #### Scenario: Birth uses bloom and hot color
@@ -18,11 +18,11 @@ The system SHALL render active cells as instanced meshes (boxes), using a simula
 - **THEN** the corresponding instance is rendered with a bright color and bloom contribution
 - **AND** the simulation's age channel for that cell is set to a maximum value
 
-#### Scenario: Aging color fade
+#### Scenario: Aging color and intensity shift
 
-- **WHEN** a cell remains alive across frames
-- **THEN** the shader maps the age channel to a color transition (hot → red → purple → faded)
-- **AND** older cells exhibit reduced bloom intensity
+- **WHEN** a cell ages (age channel decreases)
+- **THEN** the shader SHALL shift the color toward a darker, deep red palette
+- **AND** the emissive intensity and height SHALL follow a non-linear decay curve (e.g. power function) to prioritize "aged" visual states over "birth" states.
 
 #### Scenario: Performance constraint
 

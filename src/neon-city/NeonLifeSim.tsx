@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { createPortal, useFrame, useThree } from '@react-three/fiber'
 import { useFBO } from '@react-three/drei'
 import { useNeonCityStore } from './store'
-import { tpsToTickMs } from './math'
+import { tpsToTickMs, computeAgeDecayPerStep } from './math'
 import { simFrag, simVert } from './shaders'
 
 type NeonLifeSimProps = {
@@ -71,6 +71,8 @@ export function NeonLifeSim({ gridSize, onTexture, brushDownRef, brushUvRef }: N
   const ticksPerSecond = useNeonCityStore((s) => s.ticksPerSecond)
   const stepsPerTick = useNeonCityStore((s) => s.stepsPerTick)
   const ageDecayPerStep = useNeonCityStore((s) => s.ageDecayPerStep)
+  const ageDurationSeconds = useNeonCityStore((s) => s.ageDurationSeconds)
+  const useAgeDuration = useNeonCityStore((s) => s.useAgeDuration)
   const wrapEdges = useNeonCityStore((s) => s.wrapEdges)
   const brushRadius = useNeonCityStore((s) => s.brushRadius)
   const resetNonce = useNeonCityStore((s) => s.resetNonce)
@@ -93,7 +95,16 @@ export function NeonLifeSim({ gridSize, onTexture, brushDownRef, brushUvRef }: N
     const dst = ping.current === 'A' ? rtB : rtA
 
     simMat.uniforms.uPrev.value = src.texture
-    simMat.uniforms.uAgeDecay.value = ageDecayPerStep
+
+    // Compute age decay per step either from explicit per-step value or from
+    // an ageDurationSeconds parameter (seconds for age 1 -> 0).
+    if (useAgeDuration) {
+      const computed = computeAgeDecayPerStep(ageDurationSeconds, ticksPerSecond, stepsPerTick)
+      simMat.uniforms.uAgeDecay.value = computed
+    } else {
+      simMat.uniforms.uAgeDecay.value = ageDecayPerStep
+    }
+
     simMat.uniforms.uWrap.value = wrapEdges ? 1 : 0
 
     gl.setRenderTarget(dst)

@@ -11,6 +11,7 @@ type NeonCityProps = {
 }
 
 export function NeonCity({ gridSize, stateTexture, cellSize = 1.0 }: NeonCityProps) {
+  // Ensure geometry is updated when cellSize changes
   const meshRef = useRef<THREE.InstancedMesh>(null)
 
   const emissiveGain = useNeonCityStore((s) => s.emissiveGain)
