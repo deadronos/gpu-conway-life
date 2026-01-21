@@ -7,7 +7,6 @@ export type NeonCitySettings = {
 
   // Simulation
   ageDecayPerStep: number
-  ageDurationSeconds: number
   wrapEdges: boolean
 
   // Rendering
@@ -26,9 +25,11 @@ export type NeonCitySettings = {
   showStats: boolean
   // Runtime feature detection
   floatRTSupported: boolean
+  // Whether a state texture has been produced by the sim
+  hasStateTexture: boolean
   // Age configuration
-  ageDurationSeconds: number
   useAgeDuration: boolean
+  ageDurationSeconds: number
 
   // Cell size (world units)
   cellSize: number
@@ -63,6 +64,7 @@ export const useNeonCityStore = create<NeonCitySettings>((set) => ({
   brushRadius: 10,
 
   showStats: false,
+  hasStateTexture: false,
 
   // Runtime feature detection
   floatRTSupported: true,

@@ -190,9 +190,12 @@ export function NeonMicroCityDemo() {
 
           {floatRTSupported ? (
             <>
-              <NeonLifeSim
+                  <NeonLifeSim
                 gridSize={GRID_SIZE}
-                onTexture={setStateTexture}
+                onTexture={(tex) => {
+                  setStateTexture(tex)
+                  setPartial({ hasStateTexture: !!tex })
+                }}
                 brushDownRef={brushDownRef}
                 brushUvRef={brushUvRef}
               />
