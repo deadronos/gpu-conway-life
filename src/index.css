@@ -66,28 +66,3 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
-
-/* Ensure the app fills the viewport and hide scrollbars */
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  overflow: hidden;
-}
-
-/* Make the root fill and stay fixed to avoid layout-based scrollbars */
-#root {
-  position: fixed;
-  inset: 0;
-  display: block;
-}
-
-/* Ensure the three.js canvas occupies the full root area */
-canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-  touch-action: none;
-}
