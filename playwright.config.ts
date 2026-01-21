@@ -8,6 +8,7 @@ export default defineConfig({
     headless: true,
     viewport: { width: 1280, height: 720 },
     actionTimeout: 10000,
+    baseURL: 'http://localhost:5173',
   },
   webServer: {
     command: 'pnpm dev',

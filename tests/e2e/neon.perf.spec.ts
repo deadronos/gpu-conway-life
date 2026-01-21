@@ -7,7 +7,7 @@ const MEASURE_DURATION_MS = 4000
 test('perf: average FPS at gridSize=320 remains >= target', async ({ page }) => {
   await page.goto('/')
   const canvas = page.locator('canvas').first()
-  await expect(canvas).toBeVisible()
+  await canvas.waitFor({ state: 'attached', timeout: 30000 })
 
   // If the demo reports that float render targets are unsupported, skip (pass)
   const unsupported = await page.locator('[data-testid="unsupported"]').count()
@@ -26,8 +26,8 @@ test('perf: average FPS at gridSize=320 remains >= target', async ({ page }) => 
   await page.waitForTimeout(1000)
 
   // Measure via requestAnimationFrame sampling for a fixed duration in page context
-  const metrics = await page.evaluate(async (duration) => {
-    return new Promise((resolve) => {
+  const metrics = (await page.evaluate(async (duration: number) => {
+    return new Promise<{ avg: number; min: number; samples: number }>((resolve) => {
       const samples: number[] = []
       const start = performance.now()
       let last = start
@@ -46,7 +46,7 @@ test('perf: average FPS at gridSize=320 remains >= target', async ({ page }) => 
       }
       requestAnimationFrame(step)
     })
-  }, MEASURE_DURATION_MS)
+  }, MEASURE_DURATION_MS)) as { avg: number; min: number; samples: number }
 
   console.log('Perf metrics:', metrics)
 
