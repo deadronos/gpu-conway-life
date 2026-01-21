@@ -4,7 +4,13 @@
 
 ### Requirement: Neon Micro-City Visualization
 
-The system SHALL render active cells as instanced meshes, using a simulation texture to determine occupancy and an alpha or age channel to drive color and intensity for bloom.
+The system SHALL render active cells as instanced meshes (boxes), using a simulation texture to determine occupancy and an alpha or age channel to drive color, intensity for bloom, and building height.
+
+#### Scenario: City block geometry
+
+- **WHEN** the scene initializes
+- **THEN** each instance SHALL have a 1x1 world unit footprint (length x width)
+- **AND** the height SHALL be proportional to the cell's age (freshly born = tallest)
 
 #### Scenario: Birth uses bloom and hot color
 

@@ -41,7 +41,7 @@ export const useNeonCityStore = create<NeonCitySettings>((set) => ({
   wrapEdges: true,
 
   emissiveGain: 5.0,
-  heightScale: 3.0,
+  heightScale: 20.0,
 
   bloomIntensity: 1.2,
   bloomThreshold: 0.15,

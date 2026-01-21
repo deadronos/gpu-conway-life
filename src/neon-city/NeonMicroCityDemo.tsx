@@ -160,7 +160,7 @@ export function NeonMicroCityDemo() {
   return (
     <>
       <div className="canvasWrap" data-testid="canvasWrap">
-        <Canvas camera={{ position: [5, 6, 7], fov: 45 }} dpr={[1, 2]}>
+        <Canvas camera={{ position: [200, 250, 200], fov: 45 }} dpr={[1, 2]}>
           <color attach="background" args={[0x050508]} />
           <ambientLight intensity={0.2} />
           <OrbitControls makeDefault enablePan={false} maxPolarAngle={Math.PI * 0.49} />
@@ -194,7 +194,7 @@ export function NeonMicroCityDemo() {
               brushUvRef.current.set(e.uv?.x ?? 0.5, e.uv?.y ?? 0.5)
             }}
           >
-            <planeGeometry args={[12, 12]} />
+            <planeGeometry args={[GRID_SIZE, GRID_SIZE]} />
             <meshBasicMaterial transparent opacity={0} />
           </mesh>
 

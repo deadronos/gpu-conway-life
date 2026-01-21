@@ -12,8 +12,9 @@ This change implements a "Neon Micro-City" visualization where each alive Conway
 ### Rendering
 
 - One `InstancedMesh` (boxes) with `gridSize * gridSize` instances.
+- Each instance has a **1x1 world unit footprint** (length and width).
 - Per-instance sampling uses `gl_InstanceID` to derive a UV into the simulation texture.
-- Age drives building height and a neon color ramp; output is HDR-scaled via `emissiveGain` so the bloom pass can pick it up.
+- Age drives building height (scaled by `uHeightScale`) and a neon color ramp; output is HDR-scaled via `emissiveGain` so the bloom pass can pick it up.
 
 ### Postprocessing
 

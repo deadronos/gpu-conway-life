@@ -10,14 +10,15 @@ type NeonCityProps = {
   cellSize?: number
 }
 
-export function NeonCity({ gridSize, stateTexture, cellSize = 0.03 }: NeonCityProps) {
+export function NeonCity({ gridSize, stateTexture, cellSize = 1.0 }: NeonCityProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
 
   const emissiveGain = useNeonCityStore((s) => s.emissiveGain)
   const heightScale = useNeonCityStore((s) => s.heightScale)
 
   const geometry = useMemo(() => {
-    const g = new THREE.BoxGeometry(0.9 * cellSize, 1.0, 0.9 * cellSize)
+    const g = new THREE.BoxGeometry(0.98 * cellSize, 1.0, 0.98 * cellSize)
+    g.translate(0, 0.5, 0)
     return g
   }, [cellSize])
 
