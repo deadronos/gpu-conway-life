@@ -22,3 +22,18 @@ The system SHALL render active cells as instanced meshes, using a simulation tex
 
 - **WHEN** the scene initializes with 100k+ instances
 - **THEN** rendering remains within target frame rate guidelines (see tasks for measurement)
+
+### Requirement: Interactive Controls
+
+The system SHALL provide a Leva-based UI for real-time parameter tuning.
+
+#### Scenario: Update frequency control
+
+- **GIVEN** a running simulation
+- **WHEN** the user modifies the `ticksPerSecond` control
+- **THEN** the simulation update frequency adjusts proportionally (e.g. 60 TPS = 16.6ms delay)
+
+#### Scenario: Visual tuning
+
+- **WHEN** the user modifies bloom or emission parameters
+- **THEN** the shader uniforms and post-processing effects update without scene reload

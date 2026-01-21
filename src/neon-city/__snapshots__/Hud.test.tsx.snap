@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Hud > renders TPS from store 1`] = `
+<div>
+  <div
+    class="hud"
+    data-testid="hud"
+  >
+    <div>
+      Neon Micro-City
+    </div>
+    <div
+      data-testid="tps"
+    >
+      TPS: 
+      42
+    </div>
+    <div>
+      Steps/tick: 
+      1
+    </div>
+    <div>
+      Instances: 102400
+    </div>
+  </div>
+</div>
+`;
