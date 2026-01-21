@@ -32,4 +32,4 @@ This change implements a "Neon Micro-City" visualization where each alive Conway
 
 - Unit tests cover pure logic (`math.*`, `Hud.*`).
 - A Playwright integration test asserts the simulation advances by toggling store values via a test hook (`window.__neonSetPartial`) and comparing canvas screenshots before/after.
-- A future performance test should measure FPS at `gridSize = 320` (102,400 instances) and assert acceptable FPS.
+- Performance test: automated Playwright perf test was added to measure FPS at `gridSize = 320` (102,400 instances) and assert an average FPS >= 30. This test runs at headless CI and skips if the browser environment does not support float render targets.

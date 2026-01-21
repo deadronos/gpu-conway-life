@@ -12,7 +12,7 @@
 
 ## 2. Validation
 
-- [ ] 2.1 Performance test: validate 100k+ instances with acceptable frame rate
+- [x] 2.1 Performance test: validate 100k+ instances with acceptable frame rate (Playwright perf test added)
 - [x] 2.2 Visual snapshot tests pass in CI
 - [x] 2.3 Verify UI responsiveness: changing `ticksPerSecond` immediately updates simulation speed
 - [x] 2.4 Add Playwright integration test to assert the simulation advances

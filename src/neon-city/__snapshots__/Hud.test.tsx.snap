@@ -20,7 +20,7 @@ exports[`Hud > renders TPS from store 1`] = `
       1
     </div>
     <div>
-      Instances: 102400
+      Instances: 102,400
     </div>
   </div>
 </div>
