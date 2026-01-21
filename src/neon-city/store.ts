@@ -51,6 +51,9 @@ export const useNeonCityStore = create<NeonCitySettings>((set) => ({
 
   showStats: false,
 
+  // Runtime feature detection
+  floatRTSupported: true,
+
   resetNonce: 0,
   resetMode: 'random',
   randomize: () => set((s) => ({ resetNonce: s.resetNonce + 1, resetMode: 'random' })),

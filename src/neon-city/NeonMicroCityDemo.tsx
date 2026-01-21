@@ -136,6 +136,27 @@ export function NeonMicroCityDemo() {
     ),
   })
 
+  // Expose a test-only setter to allow e2e tests to toggle store values easily
+  // (Playwright will use `window.__neonSetPartial` to change `ticksPerSecond` or `paused`)
+  // This is intentionally simple and test-scoped.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(window as any).__neonSetPartial = setPartial
+
+  // Runtime feature detection for float render targets using a temporary WebGL2 context
+  const floatRTSupported = useNeonCityStore((s) => s.floatRTSupported)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const c = document.createElement('canvas')
+      const gl = c.getContext('webgl2') as WebGL2RenderingContext | null
+      const supported = !!(gl && gl.getExtension && gl.getExtension('EXT_color_buffer_float'))
+      if (!supported) setPartial({ floatRTSupported: false, paused: true })
+    } catch (e) {
+      setPartial({ floatRTSupported: false, paused: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <>
       <div className="canvasWrap" data-testid="canvasWrap">
@@ -145,14 +166,18 @@ export function NeonMicroCityDemo() {
           <OrbitControls makeDefault enablePan={false} maxPolarAngle={Math.PI * 0.49} />
           {showStats ? <Stats /> : null}
 
-          <NeonLifeSim
-            gridSize={GRID_SIZE}
-            onTexture={setStateTexture}
-            brushDownRef={brushDownRef}
-            brushUvRef={brushUvRef}
-          />
+          {floatRTSupported ? (
+            <>
+              <NeonLifeSim
+                gridSize={GRID_SIZE}
+                onTexture={setStateTexture}
+                brushDownRef={brushDownRef}
+                brushUvRef={brushUvRef}
+              />
 
-          {stateTexture ? <NeonCity gridSize={GRID_SIZE} stateTexture={stateTexture} /> : null}
+              {stateTexture ? <NeonCity gridSize={GRID_SIZE} stateTexture={stateTexture} /> : null}
+            </>
+          ) : null}
 
           <mesh
             rotation={[-Math.PI / 2, 0, 0]}
@@ -184,7 +209,7 @@ export function NeonMicroCityDemo() {
         </Canvas>
       </div>
 
-      <Hud />
+      <Hud gridSize={GRID_SIZE} />
     </>
   )
 }
