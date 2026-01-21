@@ -41,6 +41,8 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.53.1",
     "vite": "^7.3.1",
-    "vitest": "^0.34.2"
+    "vitest": "^0.34.2",
+    "playwright": "^1.40.0",
+    "@playwright/test": "^1.40.0"
   }
 }

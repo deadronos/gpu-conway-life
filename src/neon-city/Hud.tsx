@@ -16,7 +16,7 @@ export function Hud({ gridSize }: { gridSize?: number }) {
       </div>
       <div data-testid="tps">TPS: {ticksPerSecond.toFixed(0)}</div>
       <div>Steps/tick: {stepsPerTick}</div>
-      <div>Instances: {instances.toLocaleString()}</div>
+      <div>Instances: {instances.toLocaleString('en-US')}</div>
       {!floatRTSupported ? (
         <div className="warning" data-testid="unsupported">
           Warning: Your browser does not support the required WebGL float render targets (EXT_color_buffer_float). The demo is disabled.

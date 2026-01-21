@@ -6,7 +6,7 @@ import { Hud } from './Hud'
 describe('Hud', () => {
   it('renders TPS from store', () => {
     useNeonCityStore.setState({ ticksPerSecond: 42 })
-    const { container } = render(<Hud />)
+    const { container } = render(<Hud gridSize={320} />)
     expect(screen.getByTestId('tps')).toHaveTextContent('TPS: 42')
     expect(container).toMatchSnapshot()
   })

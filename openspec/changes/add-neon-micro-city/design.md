@@ -23,3 +23,13 @@ This change implements a "Neon Micro-City" visualization where each alive Conway
 
 - `ticksPerSecond` is the primary speed control; internally this is converted to `tickMs = 1000 / ticksPerSecond`.
 - Additional tuning: `stepsPerTick`, `ageDecayPerStep`, `wrapEdges`, `emissiveGain`, `heightScale`, and bloom parameters.
+
+### Runtime capability detection & fallback
+
+- The simulation requires WebGL2 float render-target support (`EXT_color_buffer_float`). The client performs a runtime check and disables the demo with a friendly message if unsupported, toggling `floatRTSupported` in the store.
+
+### Testing & Validation
+
+- Unit tests cover pure logic (`math.*`, `Hud.*`).
+- A Playwright integration test asserts the simulation advances by toggling store values via a test hook (`window.__neonSetPartial`) and comparing canvas screenshots before/after.
+- A future performance test should measure FPS at `gridSize = 320` (102,400 instances) and assert acceptable FPS.
