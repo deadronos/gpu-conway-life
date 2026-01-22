@@ -1,0 +1,115 @@
+import type { MutableRefObject } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import * as THREE from 'three'
+import { useFrame, useThree } from '@react-three/fiber'
+import { createNeonLifeSimRunner } from './NeonLifeSimRunner'
+
+export type NeonLifeSimPassProps = {
+  gridSize: number
+
+  paused?: boolean
+  ticksPerSecond?: number
+  stepsPerTick?: number
+  wrapEdges?: boolean
+
+  useAgeDuration?: boolean
+  ageDurationSeconds?: number
+  ageDecayPerStep?: number
+
+  initialState?: 'random' | 'clear'
+  initialSeed?: number
+
+  brushDownRef?: MutableRefObject<boolean>
+  brushUvRef?: MutableRefObject<THREE.Vector2>
+  brushRadiusPx?: number
+
+  onTexture?: (tex: THREE.Texture) => void
+}
+
+/**
+ * R3F wrapper that runs the reusable sim runner in the render loop.
+ * This component renders nothing.
+ */
+export function NeonLifeSimPass({
+  gridSize,
+  paused = false,
+  ticksPerSecond = 30,
+  stepsPerTick = 1,
+  wrapEdges = true,
+  useAgeDuration = true,
+  ageDurationSeconds = 4.0,
+  ageDecayPerStep = 0.03,
+  initialState = 'random',
+  initialSeed,
+  brushDownRef,
+  brushUvRef,
+  brushRadiusPx,
+  onTexture,
+}: NeonLifeSimPassProps) {
+  const gl = useThree((s) => s.gl)
+
+  const runner = useMemo(() => {
+    return createNeonLifeSimRunner(gl, {
+      gridSize,
+      initialState,
+      initialSeed,
+    })
+    // Only recreate on WebGL renderer / gridSize changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gl, gridSize])
+
+  const lastTextureRef = useRef<THREE.Texture | null>(null)
+
+  useEffect(() => {
+    runner.setParams({
+      ticksPerSecond,
+      stepsPerTick,
+      wrapEdges,
+      useAgeDuration,
+      ageDurationSeconds,
+      ageDecayPerStep,
+    })
+  }, [
+    runner,
+    ticksPerSecond,
+    stepsPerTick,
+    wrapEdges,
+    useAgeDuration,
+    ageDurationSeconds,
+    ageDecayPerStep,
+  ])
+
+  useEffect(() => {
+    const tex = runner.texture
+    lastTextureRef.current = tex
+    onTexture?.(tex)
+  }, [onTexture, runner])
+
+  useEffect(() => {
+    return () => {
+      runner.dispose()
+    }
+  }, [runner])
+
+  useFrame((_, delta) => {
+    // Update brush uniforms, even when paused, so users can paint then unpause.
+    if (brushRadiusPx != null) runner.setBrush({ radiusPx: brushRadiusPx })
+
+    if (brushDownRef && brushUvRef) {
+      runner.setBrush({
+        down: !!brushDownRef.current,
+        uv: { x: brushUvRef.current.x, y: brushUvRef.current.y },
+      })
+    }
+
+    if (paused) return
+
+    const tex = runner.step(delta)
+    if (lastTextureRef.current !== tex) {
+      lastTextureRef.current = tex
+      onTexture?.(tex)
+    }
+  })
+
+  return null
+}

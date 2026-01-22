@@ -17,57 +17,55 @@ If you are developing a production application, we recommend updating the config
 
 ```js
 export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+  # gpu-conway-life
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+  GPU-accelerated Conway's Game of Life experiments using Three.js + @react-three/fiber.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
+  The default demo is **Neon Micro-City**: it renders alive cells as instanced "buildings" whose height/glow/color are driven by a GPU simulation texture.
+
+  ## Run it
+
+  - `npm install`
+  - `npm run dev`
+
+  ## Demos
+
+  ### Neon Micro-City (default)
+
+  Open:
+
+  - `/`
+
+  ### Sim-on-mesh (project the sim onto an arbitrary mesh)
+
+  Open:
+
+  - `/?demo=mesh`
+
+  This demo uses the reusable simulation module under `src/neon-sim/`.
+
+  ## Reusable sim module (`src/neon-sim/`)
+
+  The goal is to make the simulation and sampling reusable for other R3F / Three apps.
+
+  ### Core runner (Three-only)
+
+  - `createNeonLifeSimRunner(gl, { gridSize, ... })` returns a runner exposing `{ texture, step(), reset(), setParams(), setBrush(), dispose() }`.
+
+  The state texture layout is:
+
+  - `R = alive (0/1)`
+  - `A = age (0..1)`
+
+  ### R3F wrapper
+
+  - `<NeonLifeSimPass ... onTexture={(tex) => ...} />` drives the core runner via `useFrame`.
+
+  ### Material
+
+  - `createNeonLifeStateMaterial({ stateTexture, flipY, ... })` creates a mesh-agnostic `ShaderMaterial` that samples `uState`.
+
+  ## Notes
+
+  - The simulation requires float render targets (`EXT_color_buffer_float`). Unsupported environments show a full-screen fallback.
   },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```

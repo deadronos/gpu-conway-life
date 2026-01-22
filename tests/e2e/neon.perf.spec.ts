@@ -10,8 +10,10 @@ test('perf: average FPS at gridSize=320 remains >= target', async ({ page }) => 
   await canvas.waitFor({ state: 'attached', timeout: 30000 })
 
   // If the demo reports that float render targets are unsupported, skip (pass)
-  const unsupported = await page.locator('[data-testid="unsupported"]').count()
-  if (unsupported > 0) {
+    const unsupported =
+      (await page.locator('[data-testid="unsupported"]').count()) > 0 ||
+      (await page.locator('[data-testid="unsupportedOverlay"]').count()) > 0
+    if (unsupported) {
     console.warn('Skipping perf test: float render targets not supported in this environment')
     return
   }
