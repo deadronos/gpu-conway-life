@@ -45,6 +45,24 @@ This is the lowest-friction approach and avoids bundler/monorepo setup.
 
 If you want to track upstream changes without copying files, you can add this repo as a git submodule or subtree and import the source directly.
 
+### Package manager (git dependency)
+
+You can also add this repo directly as a dependency (pointing at a branch, tag, or commit).
+
+Example `package.json` entry (this repo + `overhaul` branch):
+
+- `"gpu-conway-life": "github:deadronos/gpu-conway-life#overhaul"`
+
+Pin to an exact commit for reproducibility:
+
+- `"gpu-conway-life": "github:deadronos/gpu-conway-life#<commit-sha>"`
+
+Then import the source module from:
+
+- `node_modules/gpu-conway-life/src/neon-sim/...`
+
+**Important:** your bundler/TS config must allow importing TypeScript source from `node_modules` (or from outside your app's `src/`).
+
 ### Submodule approach
 
 - Add as a submodule under something like `vendor/gpu-conway-life/`
