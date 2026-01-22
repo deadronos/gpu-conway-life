@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import { Component, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
@@ -8,13 +9,34 @@ import { Hud } from './Hud';
 import { NeonCity } from './NeonCity';
 import { NeonLifeSim } from './NeonLifeSim';
 import { useNeonCityStore } from './store';
-import { detectFloatRTSupport, shouldForceUnsupported } from './capabilities';
+import { detectFloatRTSupport, shouldForceError, shouldForceUnsupported } from './capabilities';
+import { RuntimeErrorOverlay } from './RuntimeErrorOverlay';
 import { UnsupportedOverlay } from './UnsupportedOverlay';
 
 const GRID_SIZE = 320;
 
+class CanvasErrorBoundary extends Component<
+  { onError: (error: unknown) => void; children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    this.props.onError(error);
+  }
+
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
+
 function AutoCamera({ cellSize, gridSize }: { cellSize: number; gridSize: number }) {
-  const camera = useThree((s) => s.camera);
+  const camera = useThree(s => s.camera);
 
   useEffect(() => {
     const cs = Math.max(0.1, cellSize);
@@ -47,8 +69,14 @@ function AutoCamera({ cellSize, gridSize }: { cellSize: number; gridSize: number
 export function NeonMicroCityDemo() {
   const [stateTexture, setStateTexture] = useState<THREE.Texture | null>(null);
   const [forcedUnsupported] = useState(() => shouldForceUnsupported());
+  const [forcedError] = useState(() => shouldForceError());
+  const [runtimeError, setRuntimeError] = useState<string | null>(() =>
+    forcedError ? 'A WebGL error was forced for testing.' : null,
+  );
   const brushDownRef = useRef(false);
   const brushUvRef = useRef(new THREE.Vector2(0.5, 0.5));
+  const canvasElRef = useRef<HTMLCanvasElement | null>(null);
+  const contextLostHandlerRef = useRef<((e: Event) => void) | null>(null);
 
   const setPartial = useNeonCityStore(s => s.setPartial);
   const randomize = useNeonCityStore(s => s.randomize);
@@ -211,85 +239,121 @@ export function NeonMicroCityDemo() {
     setPartial({ floatRTSupported: false, paused: true });
   }, [forcedUnsupported, setPartial]);
 
+  useEffect(() => {
+    if (!runtimeError) return;
+    setPartial({ paused: true });
+  }, [runtimeError, setPartial]);
+
+  useEffect(() => {
+    return () => {
+      if (canvasElRef.current && contextLostHandlerRef.current) {
+        canvasElRef.current.removeEventListener('webglcontextlost', contextLostHandlerRef.current);
+      }
+    };
+  }, []);
+
   return (
     <>
       <div className="canvasWrap" data-testid="canvasWrap">
-        <Canvas
-          camera={{ position: [200 * cellSize, 250 * cellSize, 200 * cellSize], fov: 45 }}
-          dpr={[1, 2]}
-          onCreated={({ gl }) => {
-            if (forcedUnsupported) return;
-
-            try {
-              const supported = detectFloatRTSupport(gl);
-              if (!supported) setPartial({ floatRTSupported: false, paused: true });
-              else setPartial({ floatRTSupported: true });
-            } catch {
-              setPartial({ floatRTSupported: false, paused: true });
-            }
+        <CanvasErrorBoundary
+          onError={() => {
+            setRuntimeError('A WebGL error occurred while initializing the demo.');
           }}
         >
-          <color attach="background" args={[0x050508]} />
-          <ambientLight intensity={0.2} />
-          <AutoCamera cellSize={cellSize} gridSize={GRID_SIZE} />
-          <OrbitControls makeDefault enablePan={false} maxPolarAngle={Math.PI * 0.49} />
-          {showStats ? <Stats /> : null}
+          <Canvas
+            camera={{ position: [200 * cellSize, 250 * cellSize, 200 * cellSize], fov: 45 }}
+            dpr={[1, 2]}
+            onCreated={({ gl }) => {
+              canvasElRef.current = gl.domElement;
 
-          {floatRTSupported && !forcedUnsupported ? (
-            <>
-              <NeonLifeSim
-                gridSize={GRID_SIZE}
-                onTexture={tex => {
-                  setStateTexture(tex);
-                  setPartial({ hasStateTexture: !!tex });
-                }}
-                brushDownRef={brushDownRef}
-                brushUvRef={brushUvRef}
-              />
+              if (!contextLostHandlerRef.current) {
+                contextLostHandlerRef.current = (e: Event) => {
+                  if ('preventDefault' in e) (e as Event).preventDefault();
+                  setRuntimeError('WebGL context lost. Reload to try again.');
+                };
+              }
 
-              {stateTexture ? (
-                <NeonCity gridSize={GRID_SIZE} stateTexture={stateTexture} cellSize={cellSize} />
-              ) : null}
-            </>
-          ) : null}
+              gl.domElement.addEventListener('webglcontextlost', contextLostHandlerRef.current);
 
-          <mesh
-            rotation={[-Math.PI / 2, 0, 0]}
-            position={[0, 0, 0]}
-            onPointerDown={e => {
-              brushDownRef.current = true;
-              // Invert Y because texture v-space (0..1) in shader assumes bottom-left origin
-              // while pointer UV may use top-left depending on camera/geometry orientation.
-              const ux = e.uv?.x ?? 0.5;
-              const uy = e.uv?.y ?? 0.5;
-              brushUvRef.current.set(ux, 1 - uy);
-            }}
-            onPointerUp={() => {
-              brushDownRef.current = false;
-            }}
-            onPointerMove={e => {
-              if (!brushDownRef.current) return;
-              const ux = e.uv?.x ?? 0.5;
-              const uy = e.uv?.y ?? 0.5;
-              brushUvRef.current.set(ux, 1 - uy);
+              if (forcedUnsupported) return;
+              if (forcedError) return;
+
+              try {
+                const supported = detectFloatRTSupport(gl);
+                if (!supported) setPartial({ floatRTSupported: false, paused: true });
+                else setPartial({ floatRTSupported: true });
+              } catch {
+                setRuntimeError('A WebGL error occurred while initializing the demo.');
+                setPartial({ floatRTSupported: false, paused: true });
+              }
             }}
           >
-            <planeGeometry args={[GRID_SIZE * cellSize, GRID_SIZE * cellSize]} />
-            <meshBasicMaterial transparent opacity={0} />
-          </mesh>
+            <color attach="background" args={[0x050508]} />
+            <ambientLight intensity={0.2} />
+            <AutoCamera cellSize={cellSize} gridSize={GRID_SIZE} />
+            <OrbitControls makeDefault enablePan={false} maxPolarAngle={Math.PI * 0.49} />
+            {showStats ? <Stats /> : null}
 
-          <EffectComposer multisampling={0}>
-            <Bloom
-              intensity={bloomIntensity}
-              threshold={bloomThreshold}
-              smoothing={bloomSmoothing}
-              mipmapBlur
-            />
-          </EffectComposer>
-        </Canvas>
+            {floatRTSupported && !forcedUnsupported && !runtimeError ? (
+              <>
+                <NeonLifeSim
+                  gridSize={GRID_SIZE}
+                  onTexture={tex => {
+                    setStateTexture(tex);
+                    setPartial({ hasStateTexture: !!tex });
+                  }}
+                  brushDownRef={brushDownRef}
+                  brushUvRef={brushUvRef}
+                />
+
+                {stateTexture ? (
+                  <NeonCity gridSize={GRID_SIZE} stateTexture={stateTexture} cellSize={cellSize} />
+                ) : null}
+              </>
+            ) : null}
+
+            <mesh
+              rotation={[-Math.PI / 2, 0, 0]}
+              position={[0, 0, 0]}
+              onPointerDown={e => {
+                brushDownRef.current = true;
+                // Invert Y because texture v-space (0..1) in shader assumes bottom-left origin
+                // while pointer UV may use top-left depending on camera/geometry orientation.
+                const ux = e.uv?.x ?? 0.5;
+                const uy = e.uv?.y ?? 0.5;
+                brushUvRef.current.set(ux, 1 - uy);
+              }}
+              onPointerUp={() => {
+                brushDownRef.current = false;
+              }}
+              onPointerMove={e => {
+                if (!brushDownRef.current) return;
+                const ux = e.uv?.x ?? 0.5;
+                const uy = e.uv?.y ?? 0.5;
+                brushUvRef.current.set(ux, 1 - uy);
+              }}
+            >
+              <planeGeometry args={[GRID_SIZE * cellSize, GRID_SIZE * cellSize]} />
+              <meshBasicMaterial transparent opacity={0} />
+            </mesh>
+
+            <EffectComposer multisampling={0}>
+              <Bloom
+                intensity={bloomIntensity}
+                threshold={bloomThreshold}
+                smoothing={bloomSmoothing}
+                mipmapBlur
+              />
+            </EffectComposer>
+          </Canvas>
+        </CanvasErrorBoundary>
       </div>
 
-      {!floatRTSupported || forcedUnsupported ? <UnsupportedOverlay /> : null}
+      {runtimeError ? (
+        <RuntimeErrorOverlay message={runtimeError} />
+      ) : !floatRTSupported || forcedUnsupported ? (
+        <UnsupportedOverlay />
+      ) : null}
 
       <Hud gridSize={GRID_SIZE} />
     </>

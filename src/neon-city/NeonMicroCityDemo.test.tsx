@@ -108,6 +108,15 @@ describe('NeonMicroCityDemo', () => {
     render(<NeonMicroCityDemo />);
 
     expect(screen.queryByTestId('unsupportedOverlay')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('runtimeErrorOverlay')).not.toBeInTheDocument();
     expect(screen.getByTestId('neonLifeSim')).toBeInTheDocument();
+  });
+
+  it('shows runtime error overlay when forced error is enabled', () => {
+    window.history.replaceState({}, '', '/?forceError=1');
+
+    render(<NeonMicroCityDemo />);
+
+    expect(screen.getByTestId('runtimeErrorOverlay')).toBeInTheDocument();
   });
 });
