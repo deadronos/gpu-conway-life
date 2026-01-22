@@ -8,7 +8,7 @@
 - [ ] 1.4 Add `NeonLifeStateMaterial` that samples `uState` and exposes a UV-origin switch (e.g., `uFlipY`) plus documented defaults.
 - [ ] 1.5 Add an in-app example component (e.g., `NeonSimOnMeshDemo`) that maps the sim onto an arbitrary mesh (sphere/torus) and can be selected via a simple toggle (since `App.tsx` currently has no routing).
 - [ ] 1.6 Update existing demo(s) only as needed to prove compatibility (no breaking changes).
-- [ ] 1.7 Add unit/integration tests: lifecycle/disposal for the core runner, R3F wrapper calls `onTexture`, material compiles.
+- [x] 1.7 Add unit/integration tests: lifecycle/disposal for the core runner, R3F wrapper calls `onTexture`, material compiles.
 - [ ] 1.8 Add docs explaining:
   - state texture layout (R=alive, A=age)
   - float render target requirements
@@ -21,7 +21,7 @@
 - [ ] 2.2 Run the dev app and verify the sim renders correctly on:
   - the existing micro-city visualization
   - the new arbitrary-mesh example
-- [ ] 2.3 (Optional) Add a Playwright smoke/visual test ensuring the sim appears on the example mesh
+- [x] 2.3 (Optional) Add a Playwright smoke/visual test ensuring the sim appears on the example mesh
 - [ ] 2.4 Run `openspec validate add-sim-as-material --strict --no-interactive`
 
 ## 3. Follow-ups (non-blocking)

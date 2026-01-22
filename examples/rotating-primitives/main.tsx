@@ -149,7 +149,7 @@ export function Scene() {
 
         {floatRTSupported && !forcedUnsupported && !runtimeError ? (
           <NeonLifeSimPass
-            gridSize={256}
+            gridSize={1024}
             ticksPerSecond={30}
             stepsPerTick={1}
             wrapEdges
