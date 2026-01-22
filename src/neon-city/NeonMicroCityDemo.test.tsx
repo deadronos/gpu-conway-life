@@ -71,10 +71,10 @@ vi.mock('./Hud', async () => {
   };
 });
 
-vi.mock('./NeonLifeSim', async () => {
+vi.mock('../neon-sim/NeonLifeSimPass', async () => {
   await import('react');
   return {
-    NeonLifeSim: () => <div data-testid="neonLifeSim" />,
+    NeonLifeSimPass: () => <div data-testid="neonLifeSimPass" />,
   };
 });
 
@@ -92,7 +92,7 @@ describe('NeonMicroCityDemo', () => {
     render(<NeonMicroCityDemo />);
 
     expect(screen.getByTestId('unsupportedOverlay')).toBeInTheDocument();
-    expect(screen.queryByTestId('neonLifeSim')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('neonLifeSimPass')).not.toBeInTheDocument();
   });
 
   it('shows fallback overlay when float RT is not supported (without forcing)', () => {
@@ -101,15 +101,15 @@ describe('NeonMicroCityDemo', () => {
     render(<NeonMicroCityDemo />);
 
     expect(screen.getByTestId('unsupportedOverlay')).toBeInTheDocument();
-    expect(screen.queryByTestId('neonLifeSim')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('neonLifeSimPass')).not.toBeInTheDocument();
   });
 
-  it('mounts NeonLifeSim when float RT is supported and not forced unsupported', () => {
+  it('mounts NeonLifeSimPass when float RT is supported and not forced unsupported', () => {
     render(<NeonMicroCityDemo />);
 
     expect(screen.queryByTestId('unsupportedOverlay')).not.toBeInTheDocument();
     expect(screen.queryByTestId('runtimeErrorOverlay')).not.toBeInTheDocument();
-    expect(screen.getByTestId('neonLifeSim')).toBeInTheDocument();
+    expect(screen.getByTestId('neonLifeSimPass')).toBeInTheDocument();
   });
 
   it('shows runtime error overlay when forced error is enabled', () => {

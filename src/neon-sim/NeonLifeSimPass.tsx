@@ -19,6 +19,14 @@ export type NeonLifeSimPassProps = {
   initialState?: 'random' | 'clear'
   initialSeed?: number
 
+  /**
+   * When `resetNonce` changes, a reset will be performed using `resetMode`.
+   * This mirrors the existing Neon Micro-City store pattern.
+   */
+  resetNonce?: number
+  resetMode?: 'random' | 'clear'
+  resetSeed?: number
+
   brushDownRef?: MutableRefObject<boolean>
   brushUvRef?: MutableRefObject<THREE.Vector2>
   brushRadiusPx?: number
@@ -41,6 +49,9 @@ export function NeonLifeSimPass({
   ageDecayPerStep = 0.03,
   initialState = 'random',
   initialSeed,
+  resetNonce,
+  resetMode = 'random',
+  resetSeed,
   brushDownRef,
   brushUvRef,
   brushRadiusPx,
@@ -54,11 +65,10 @@ export function NeonLifeSimPass({
       initialState,
       initialSeed,
     })
-    // Only recreate on WebGL renderer / gridSize changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gl, gridSize])
+  }, [gl, gridSize, initialSeed, initialState])
 
   const lastTextureRef = useRef<THREE.Texture | null>(null)
+  const lastResetNonceRef = useRef<number | null>(null)
 
   useEffect(() => {
     runner.setParams({
@@ -90,6 +100,17 @@ export function NeonLifeSimPass({
       runner.dispose()
     }
   }, [runner])
+
+  useEffect(() => {
+    if (resetNonce == null) return
+    if (lastResetNonceRef.current === resetNonce) return
+    lastResetNonceRef.current = resetNonce
+
+    runner.reset(resetMode, resetSeed)
+    const tex = runner.texture
+    lastTextureRef.current = tex
+    onTexture?.(tex)
+  }, [onTexture, resetMode, resetNonce, resetSeed, runner])
 
   useFrame((_, delta) => {
     // Update brush uniforms, even when paused, so users can paint then unpause.

@@ -7,7 +7,7 @@ import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import { button, folder, useControls } from 'leva';
 import { Hud } from './Hud';
 import { NeonCity } from './NeonCity';
-import { NeonLifeSim } from './NeonLifeSim';
+import { NeonLifeSimPass } from '../neon-sim/NeonLifeSimPass';
 import { useNeonCityStore } from './store';
 import { detectFloatRTSupport, shouldForceError, shouldForceUnsupported } from './capabilities';
 import { RuntimeErrorOverlay } from './RuntimeErrorOverlay';
@@ -97,6 +97,8 @@ export function NeonMicroCityDemo() {
   const brushRadius = useNeonCityStore(s => s.brushRadius);
   const showStats = useNeonCityStore(s => s.showStats);
   const cellSize = useNeonCityStore(s => s.cellSize);
+  const resetNonce = useNeonCityStore(s => s.resetNonce);
+  const resetMode = useNeonCityStore(s => s.resetMode);
 
   useControls({
     Simulation: folder(
@@ -296,14 +298,24 @@ export function NeonMicroCityDemo() {
 
             {floatRTSupported && !forcedUnsupported && !runtimeError ? (
               <>
-                <NeonLifeSim
+                <NeonLifeSimPass
                   gridSize={GRID_SIZE}
+                  paused={paused}
+                  ticksPerSecond={ticksPerSecond}
+                  stepsPerTick={stepsPerTick}
+                  wrapEdges={wrapEdges}
+                  useAgeDuration={useAgeDuration}
+                  ageDurationSeconds={ageDurationSeconds}
+                  ageDecayPerStep={ageDecayPerStep}
+                  resetNonce={resetNonce}
+                  resetMode={resetMode}
+                  brushDownRef={brushDownRef}
+                  brushUvRef={brushUvRef}
+                  brushRadiusPx={brushRadius}
                   onTexture={tex => {
                     setStateTexture(tex);
                     setPartial({ hasStateTexture: !!tex });
                   }}
-                  brushDownRef={brushDownRef}
-                  brushUvRef={brushUvRef}
                 />
 
                 {stateTexture ? (
