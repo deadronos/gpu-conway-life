@@ -18,6 +18,7 @@ void main() {
 
 export const simFrag = /* glsl */ `
 precision highp float;
+precision highp int;
 
 in vec2 vUv;
 out vec4 fragColor;
@@ -26,6 +27,11 @@ uniform sampler2D uPrev;
 uniform vec2 uTexSize;
 uniform float uAgeDecay;
 uniform int uWrap;
+
+// Life-like rules encoded as bitmasks over neighbor counts 0..8.
+// bit n indicates the rule triggers when a cell has n live neighbors.
+uniform int uBirthMask;
+uniform int uSurviveMask;
 
 uniform int uResetMode; // 0 = none, 1 = clear, 2 = random
 uniform float uResetSeed;
@@ -73,18 +79,21 @@ void main() {
   float alive = step(0.5, cur.r);
   float age = cur.a;
 
-  float n = 0.0;
-  n += step(0.5, sampleState(coord + ivec2(-1, -1)).r);
-  n += step(0.5, sampleState(coord + ivec2( 0, -1)).r);
-  n += step(0.5, sampleState(coord + ivec2( 1, -1)).r);
-  n += step(0.5, sampleState(coord + ivec2(-1,  0)).r);
-  n += step(0.5, sampleState(coord + ivec2( 1,  0)).r);
-  n += step(0.5, sampleState(coord + ivec2(-1,  1)).r);
-  n += step(0.5, sampleState(coord + ivec2( 0,  1)).r);
-  n += step(0.5, sampleState(coord + ivec2( 1,  1)).r);
+  int n = 0;
+  n += int(step(0.5, sampleState(coord + ivec2(-1, -1)).r));
+  n += int(step(0.5, sampleState(coord + ivec2( 0, -1)).r));
+  n += int(step(0.5, sampleState(coord + ivec2( 1, -1)).r));
+  n += int(step(0.5, sampleState(coord + ivec2(-1,  0)).r));
+  n += int(step(0.5, sampleState(coord + ivec2( 1,  0)).r));
+  n += int(step(0.5, sampleState(coord + ivec2(-1,  1)).r));
+  n += int(step(0.5, sampleState(coord + ivec2( 0,  1)).r));
+  n += int(step(0.5, sampleState(coord + ivec2( 1,  1)).r));
 
-  float survive = alive * step(1.5, n) * step(n, 3.5);
-  float born = (1.0 - alive) * step(2.5, n) * step(n, 3.5);
+  float surviveRule = float((uSurviveMask >> n) & 1);
+  float birthRule = float((uBirthMask >> n) & 1);
+
+  float survive = alive * surviveRule;
+  float born = (1.0 - alive) * birthRule;
   float nextAlive = clamp(survive + born, 0.0, 1.0);
 
   float nextAge = 0.0;

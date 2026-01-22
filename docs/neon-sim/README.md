@@ -82,6 +82,24 @@ The simulation outputs an RGBA float texture:
 - `A = age` (0..1)
 - `G/B` unused
 
+### Rule variants (Life / HighLife / Custom)
+
+Rules are configured on the **simulation** (runner/pass) and change what gets written into the state texture.
+The **material** only visualizes the state texture (`uState`) and does not depend on the rule.
+
+Supported rule presets:
+
+- `rule: 'life'` (classic Life: `B3/S23`) — default
+- `rule: 'highlife'` (HighLife: `B36/S23`)
+- `rule: 'custom'` with `ruleString: 'B.../S...'`
+
+Custom rule format:
+
+- Must be Life-like notation: `B<digits>/S<digits>` where digits are neighbor counts in `0..8`.
+- Example: `B36/S23`
+- If `rule` is not `'custom'`, `ruleString` is ignored.
+- If `rule` is `'custom'` and `ruleString` is missing or invalid, the simulation runner will throw.
+
 ### Core runner (Three-only)
 
 Create a runner:
@@ -100,6 +118,7 @@ runner.setParams({
   ticksPerSecond: 30,
   stepsPerTick: 1,
   wrapEdges: true,
+  rule: 'life',
   useAgeDuration: true,
   ageDurationSeconds: 4.0,
   // OR: useAgeDuration: false, ageDecayPerStep: 0.03,
@@ -129,6 +148,12 @@ Reset (clear or random):
 ```ts
 runner.reset('clear')
 runner.reset('random', 42) // reproducible random
+
+// Switch rules at runtime:
+runner.setParams({ rule: 'highlife' })
+
+// Custom rule (Life-like notation):
+runner.setParams({ rule: 'custom', ruleString: 'B36/S23' })
 ```
 
 Brush input (optional):
@@ -194,6 +219,12 @@ export function MySimOnMesh() {
   return (
     <>
       <NeonLifeSimPass gridSize={256} ticksPerSecond={30} onTexture={setStateTexture} />
+
+      {/* Switch rules */}
+      {/* <NeonLifeSimPass gridSize={256} rule="highlife" onTexture={setStateTexture} /> */}
+
+      {/* Custom rule */}
+      {/* <NeonLifeSimPass gridSize={256} rule="custom" ruleString="B36/S23" onTexture={setStateTexture} /> */}
 
       <mesh>
         <sphereGeometry args={[1, 128, 64]} />

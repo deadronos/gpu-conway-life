@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import { computeAgeDecayPerStep, tpsToTickMs } from './math'
 import { simFrag, simVert } from './simShaders'
+import type { NeonLifeRulePreset } from './rules'
+import { resolveRuleMasks } from './rules'
 
 export type NeonLifeSimResetMode = 'none' | 'clear' | 'random'
 
@@ -22,6 +24,10 @@ export type NeonLifeSimRunnerParams = {
   ticksPerSecond: number
   stepsPerTick: number
   wrapEdges: boolean
+
+  // Rule selection
+  rule: NeonLifeRulePreset
+  ruleString?: string
 
   // Age decay: either explicit per-step, or derived from a duration.
   useAgeDuration: boolean
@@ -59,6 +65,8 @@ const DEFAULT_PARAMS: NeonLifeSimRunnerParams = {
   ticksPerSecond: 30,
   stepsPerTick: 1,
   wrapEdges: true,
+
+  rule: 'life',
 
   useAgeDuration: true,
   ageDurationSeconds: 4.0,
@@ -103,6 +111,8 @@ export function createNeonLifeSimRunner(
       uTexSize: { value: size },
       uAgeDecay: { value: DEFAULT_PARAMS.ageDecayPerStep },
       uWrap: { value: DEFAULT_PARAMS.wrapEdges ? 1 : 0 },
+      uBirthMask: { value: resolveRuleMasks({ rule: 'life' }).birthMask },
+      uSurviveMask: { value: resolveRuleMasks({ rule: 'life' }).surviveMask },
       uResetMode: { value: 0 },
       uResetSeed: { value: options.initialSeed ?? Math.random() * 1000 },
       uBrushDown: { value: 0 },
@@ -142,6 +152,10 @@ export function createNeonLifeSimRunner(
     }
 
     simMat.uniforms.uWrap.value = params.wrapEdges ? 1 : 0
+
+    const masks = resolveRuleMasks({ rule: params.rule, ruleString: params.ruleString })
+    simMat.uniforms.uBirthMask.value = masks.birthMask
+    simMat.uniforms.uSurviveMask.value = masks.surviveMask
   }
 
   function applyBrushToUniforms() {

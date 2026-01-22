@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import { createNeonLifeSimRunner } from './NeonLifeSimRunner'
+import type { NeonLifeRulePreset } from './rules'
 
 export type NeonLifeSimPassProps = {
   gridSize: number
@@ -15,6 +16,10 @@ export type NeonLifeSimPassProps = {
   useAgeDuration?: boolean
   ageDurationSeconds?: number
   ageDecayPerStep?: number
+
+  rule?: NeonLifeRulePreset
+  /** Only used when `rule === 'custom'` */
+  ruleString?: string
 
   initialState?: 'random' | 'clear'
   initialSeed?: number
@@ -47,6 +52,8 @@ export function NeonLifeSimPass({
   useAgeDuration = true,
   ageDurationSeconds = 4.0,
   ageDecayPerStep = 0.03,
+  rule = 'life',
+  ruleString,
   initialState = 'random',
   initialSeed,
   resetNonce,
@@ -78,6 +85,8 @@ export function NeonLifeSimPass({
       useAgeDuration,
       ageDurationSeconds,
       ageDecayPerStep,
+      rule,
+      ruleString,
     })
   }, [
     runner,
@@ -87,6 +96,8 @@ export function NeonLifeSimPass({
     useAgeDuration,
     ageDurationSeconds,
     ageDecayPerStep,
+    rule,
+    ruleString,
   ])
 
   useEffect(() => {

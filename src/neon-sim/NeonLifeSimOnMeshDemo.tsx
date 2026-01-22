@@ -9,6 +9,7 @@ import { RuntimeErrorOverlay } from '../neon-city/RuntimeErrorOverlay'
 import { UnsupportedOverlay } from '../neon-city/UnsupportedOverlay'
 import { NeonLifeSimPass } from './NeonLifeSimPass'
 import { createNeonLifeStateMaterial } from './NeonLifeStateMaterial'
+import type { NeonLifeRulePreset } from './rules'
 
 const GRID_SIZE = 256
 
@@ -105,6 +106,8 @@ export function NeonLifeSimOnMeshDemo() {
     ticksPerSecond: 30,
     stepsPerTick: 1,
     wrapEdges: true,
+    rule: 'life' as NeonLifeRulePreset,
+    ruleString: 'B36/S23',
     useAgeDuration: true,
     ageDurationSeconds: 4.0,
     ageDecayPerStep: 0.03,
@@ -139,6 +142,16 @@ export function NeonLifeSimOnMeshDemo() {
         wrapEdges: {
           value: sim.wrapEdges,
           onChange: (v: boolean) => setSim((s) => ({ ...s, wrapEdges: v })),
+        },
+        rule: {
+          value: sim.rule,
+          options: { life: 'life', highlife: 'highlife', custom: 'custom' },
+          onChange: (v: NeonLifeRulePreset) => setSim((s) => ({ ...s, rule: v })),
+        },
+        ruleString: {
+          value: sim.ruleString,
+          render: () => sim.rule === 'custom',
+          onChange: (v: string) => setSim((s) => ({ ...s, ruleString: v })),
         },
         useAgeDuration: {
           value: sim.useAgeDuration,
@@ -222,6 +235,8 @@ export function NeonLifeSimOnMeshDemo() {
                   ticksPerSecond={sim.ticksPerSecond}
                   stepsPerTick={sim.stepsPerTick}
                   wrapEdges={sim.wrapEdges}
+                  rule={sim.rule}
+                  ruleString={sim.rule === 'custom' ? sim.ruleString : undefined}
                   useAgeDuration={sim.useAgeDuration}
                   ageDurationSeconds={sim.ageDurationSeconds}
                   ageDecayPerStep={sim.ageDecayPerStep}

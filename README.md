@@ -1,75 +1,48 @@
-# React + TypeScript + Vite
+# gpu-conway-life
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+GPU-accelerated Conway's Game of Life experiments using Three.js + @react-three/fiber.
 
-Currently, two official plugins are available:
+The default demo is **Neon Micro-City**: it renders alive cells as instanced "buildings" whose height/glow/color are driven by a GPU simulation texture.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Run it
 
-## React Compiler
+- `npm install`
+- `npm run dev`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Demos
 
-## Expanding the ESLint configuration
+### Neon Micro-City (default)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- `/`
 
-```js
-export default defineConfig([
-  # gpu-conway-life
+### Sim-on-mesh (project the sim onto an arbitrary mesh)
 
-  GPU-accelerated Conway's Game of Life experiments using Three.js + @react-three/fiber.
+- `/?demo=mesh`
 
-  The default demo is **Neon Micro-City**: it renders alive cells as instanced "buildings" whose height/glow/color are driven by a GPU simulation texture.
+## Examples (multi-page)
 
-  ## Run it
+- Rotating primitives (cube + sphere + dodecahedron): `/examples/rotating-primitives/`
 
-  - `npm install`
-  - `npm run dev`
+## Reusable sim module (`src/neon-sim/`)
 
-  ## Demos
+The goal is to make the simulation and sampling reusable for other R3F / Three apps.
 
-  ### Neon Micro-City (default)
+For a step-by-step guide (including copying into another app), see:
 
-  Open:
+- `docs/neon-sim/README.md`
 
-  - `/`
+### Rules (Life / HighLife / Custom)
 
-  ### Sim-on-mesh (project the sim onto an arbitrary mesh)
+Rule variants are supported by the **simulation** (runner/pass) and change what gets written into the state texture.
+The **material** only visualizes `uState` and does not need to know the rule.
 
-  Open:
+Supported presets:
 
-  - `/?demo=mesh`
+- `rule: 'life'` (B3/S23)
+- `rule: 'highlife'` (B36/S23)
+- `rule: 'custom'` with `ruleString: 'B.../S...'`
 
+## Notes
+
+- The simulation requires float render targets (`EXT_color_buffer_float`). Unsupported environments show a full-screen fallback.
   This demo uses the reusable simulation module under `src/neon-sim/`.
-
-  ## Reusable sim module (`src/neon-sim/`)
-
-  The goal is to make the simulation and sampling reusable for other R3F / Three apps.
-
-  For a step-by-step guide (including copying into another app), see:
-
-  - `docs/neon-sim/README.md`
-
-  ### Core runner (Three-only)
-
-  - `createNeonLifeSimRunner(gl, { gridSize, ... })` returns a runner exposing `{ texture, step(), reset(), setParams(), setBrush(), dispose() }`.
-
-  The state texture layout is:
-
-  - `R = alive (0/1)`
-  - `A = age (0..1)`
-
-  ### R3F wrapper
-
-  - `<NeonLifeSimPass ... onTexture={(tex) => ...} />` drives the core runner via `useFrame`.
-
-  ### Material
-
-  - `createNeonLifeStateMaterial({ stateTexture, flipY, ... })` creates a mesh-agnostic `ShaderMaterial` that samples `uState`.
-
-  ## Notes
-
-  - The simulation requires float render targets (`EXT_color_buffer_float`). Unsupported environments show a full-screen fallback.
-  },
