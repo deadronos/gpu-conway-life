@@ -1,15 +1,23 @@
-import { Canvas } from '@react-three/fiber';
-import GOLSimulation from './components/GOLSimulation';
-import './App.css';
+import { Leva } from 'leva'
+import { NeonMicroCityDemo } from './neon-city/NeonMicroCityDemo'
+import { NeonLifeSimOnMeshDemo } from './neon-sim/NeonLifeSimOnMeshDemo'
 
-function App() {
-  return (
-    <div style={{ width: '100%', height: '100%' }}>
-      <Canvas orthographic camera={{ zoom: 1, position: [0, 0, 100] }}>
-        <GOLSimulation />
-      </Canvas>
-    </div>
-  );
+function getDemoMode(): 'micro-city' | 'mesh' {
+  if (typeof window === 'undefined') return 'micro-city'
+  try {
+    const demo = new URLSearchParams(window.location.search).get('demo')
+    return demo === 'mesh' ? 'mesh' : 'micro-city'
+  } catch {
+    return 'micro-city'
+  }
 }
 
-export default App;
+export default function App() {
+  const mode = getDemoMode()
+  return (
+    <div className="app">
+      <Leva collapsed />
+      {mode === 'mesh' ? <NeonLifeSimOnMeshDemo /> : <NeonMicroCityDemo />}
+    </div>
+  )
+}
