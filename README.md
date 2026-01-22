@@ -48,6 +48,10 @@ export default defineConfig([
 
   The goal is to make the simulation and sampling reusable for other R3F / Three apps.
 
+  For a step-by-step guide (including copying into another app), see:
+
+  - `docs/neon-sim/README.md`
+
   ### Core runner (Three-only)
 
   - `createNeonLifeSimRunner(gl, { gridSize, ... })` returns a runner exposing `{ texture, step(), reset(), setParams(), setBrush(), dispose() }`.
