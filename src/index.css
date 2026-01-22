@@ -1,5 +1,9 @@
 :root {
-  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.92);
@@ -37,4 +41,40 @@ body,
   backdrop-filter: blur(8px);
   font-size: 12px;
   letter-spacing: 0.02em;
+}
+
+.fullscreenFallback {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(5, 5, 8, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+.fullscreenFallbackInner {
+  width: min(720px, 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65);
+  padding: 20px 20px;
+}
+
+.fullscreenFallbackTitle {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  margin-bottom: 10px;
+}
+
+.fullscreenFallbackBody {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 10px;
 }

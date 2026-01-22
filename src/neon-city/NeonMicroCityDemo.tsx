@@ -1,40 +1,74 @@
-import { useEffect, useRef, useState } from 'react'
-import * as THREE from 'three'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Stats } from '@react-three/drei'
-import { Bloom, EffectComposer } from '@react-three/postprocessing'
-import { button, folder, useControls } from 'leva'
-import { Hud } from './Hud'
-import { NeonCity } from './NeonCity'
-import { NeonLifeSim } from './NeonLifeSim'
-import { useNeonCityStore } from './store'
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { Canvas, useThree } from '@react-three/fiber';
+import { OrbitControls, Stats } from '@react-three/drei';
+import { Bloom, EffectComposer } from '@react-three/postprocessing';
+import { button, folder, useControls } from 'leva';
+import { Hud } from './Hud';
+import { NeonCity } from './NeonCity';
+import { NeonLifeSim } from './NeonLifeSim';
+import { useNeonCityStore } from './store';
+import { detectFloatRTSupport, shouldForceUnsupported } from './capabilities';
+import { UnsupportedOverlay } from './UnsupportedOverlay';
 
-const GRID_SIZE = 320
+const GRID_SIZE = 320;
+
+function AutoCamera({ cellSize, gridSize }: { cellSize: number; gridSize: number }) {
+  const camera = useThree((s) => s.camera);
+
+  useEffect(() => {
+    const cs = Math.max(0.1, cellSize);
+
+    // Keep the camera framing consistent as the world scale changes.
+    camera.position.set(200 * cs, 250 * cs, 200 * cs);
+
+    // Default PerspectiveCamera far=2000, which clips the whole scene when cs is large.
+    // Compute near/far relative to world extent to avoid a black screen.
+    const extent = gridSize * cs;
+    const near = Math.max(0.1, cs * 0.1);
+    const far = Math.max(5000, 400 * cs + extent * 4);
+
+    // `camera` is expected to be a PerspectiveCamera here, but keep it defensive.
+    if ('near' in camera && 'far' in camera) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (camera as any).near = near;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (camera as any).far = far;
+    }
+
+    if ('updateProjectionMatrix' in camera) {
+      camera.updateProjectionMatrix();
+    }
+  }, [camera, cellSize, gridSize]);
+
+  return null;
+}
 
 export function NeonMicroCityDemo() {
-  const [stateTexture, setStateTexture] = useState<THREE.Texture | null>(null)
-  const brushDownRef = useRef(false)
-  const brushUvRef = useRef(new THREE.Vector2(0.5, 0.5))
+  const [stateTexture, setStateTexture] = useState<THREE.Texture | null>(null);
+  const [forcedUnsupported] = useState(() => shouldForceUnsupported());
+  const brushDownRef = useRef(false);
+  const brushUvRef = useRef(new THREE.Vector2(0.5, 0.5));
 
-  const setPartial = useNeonCityStore((s) => s.setPartial)
-  const randomize = useNeonCityStore((s) => s.randomize)
-  const clear = useNeonCityStore((s) => s.clear)
+  const setPartial = useNeonCityStore(s => s.setPartial);
+  const randomize = useNeonCityStore(s => s.randomize);
+  const clear = useNeonCityStore(s => s.clear);
 
-  const paused = useNeonCityStore((s) => s.paused)
-  const ticksPerSecond = useNeonCityStore((s) => s.ticksPerSecond)
-  const stepsPerTick = useNeonCityStore((s) => s.stepsPerTick)
-  const ageDecayPerStep = useNeonCityStore((s) => s.ageDecayPerStep)
-  const ageDurationSeconds = useNeonCityStore((s) => s.ageDurationSeconds)
-  const useAgeDuration = useNeonCityStore((s) => s.useAgeDuration)
-  const wrapEdges = useNeonCityStore((s) => s.wrapEdges)
-  const emissiveGain = useNeonCityStore((s) => s.emissiveGain)
-  const heightScale = useNeonCityStore((s) => s.heightScale)
-  const bloomIntensity = useNeonCityStore((s) => s.bloomIntensity)
-  const bloomThreshold = useNeonCityStore((s) => s.bloomThreshold)
-  const bloomSmoothing = useNeonCityStore((s) => s.bloomSmoothing)
-  const brushRadius = useNeonCityStore((s) => s.brushRadius)
-  const showStats = useNeonCityStore((s) => s.showStats)
-  const cellSize = useNeonCityStore((s) => s.cellSize)
+  const paused = useNeonCityStore(s => s.paused);
+  const ticksPerSecond = useNeonCityStore(s => s.ticksPerSecond);
+  const stepsPerTick = useNeonCityStore(s => s.stepsPerTick);
+  const ageDecayPerStep = useNeonCityStore(s => s.ageDecayPerStep);
+  const ageDurationSeconds = useNeonCityStore(s => s.ageDurationSeconds);
+  const useAgeDuration = useNeonCityStore(s => s.useAgeDuration);
+  const wrapEdges = useNeonCityStore(s => s.wrapEdges);
+  const emissiveGain = useNeonCityStore(s => s.emissiveGain);
+  const heightScale = useNeonCityStore(s => s.heightScale);
+  const bloomIntensity = useNeonCityStore(s => s.bloomIntensity);
+  const bloomThreshold = useNeonCityStore(s => s.bloomThreshold);
+  const bloomSmoothing = useNeonCityStore(s => s.bloomSmoothing);
+  const brushRadius = useNeonCityStore(s => s.brushRadius);
+  const showStats = useNeonCityStore(s => s.showStats);
+  const cellSize = useNeonCityStore(s => s.cellSize);
 
   useControls({
     Simulation: folder(
@@ -155,74 +189,89 @@ export function NeonMicroCityDemo() {
       },
       { collapsed: true },
     ),
-  })
+  });
 
-  // Expose a test-only setter to allow e2e tests to toggle store values easily
-  // (Playwright will use `window.__neonSetPartial` to change `ticksPerSecond` or `paused`)
-  // This is intentionally simple and test-scoped.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(window as any).__neonSetPartial = setPartial
+  // Expose a test-only setter to allow e2e tests to toggle store values easily.
+  // (Playwright will use `window.__neonSetPartial` to change `ticksPerSecond` or `paused`.)
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__neonSetPartial = setPartial;
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any).__neonSetPartial;
+    };
+  }, [setPartial]);
 
-  // Runtime feature detection for float render targets using a temporary WebGL2 context
-  const floatRTSupported = useNeonCityStore((s) => s.floatRTSupported)
+  // Runtime feature detection for float render targets.
+  // Must use the actual R3F WebGL context created by <Canvas>.
+  const floatRTSupported = useNeonCityStore(s => s.floatRTSupported);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      const c = document.createElement('canvas')
-      const gl = c.getContext('webgl2') as WebGL2RenderingContext | null
-      const supported = !!(gl && gl.getExtension && gl.getExtension('EXT_color_buffer_float'))
-      if (!supported) setPartial({ floatRTSupported: false, paused: true })
-    } catch (e) {
-      setPartial({ floatRTSupported: false, paused: true })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (!forcedUnsupported) return;
+    setPartial({ floatRTSupported: false, paused: true });
+  }, [forcedUnsupported, setPartial]);
 
   return (
     <>
       <div className="canvasWrap" data-testid="canvasWrap">
-        <Canvas camera={{ position: [200 * cellSize, 250 * cellSize, 200 * cellSize], fov: 45 }} dpr={[1, 2]}>
+        <Canvas
+          camera={{ position: [200 * cellSize, 250 * cellSize, 200 * cellSize], fov: 45 }}
+          dpr={[1, 2]}
+          onCreated={({ gl }) => {
+            if (forcedUnsupported) return;
+
+            try {
+              const supported = detectFloatRTSupport(gl);
+              if (!supported) setPartial({ floatRTSupported: false, paused: true });
+              else setPartial({ floatRTSupported: true });
+            } catch {
+              setPartial({ floatRTSupported: false, paused: true });
+            }
+          }}
+        >
           <color attach="background" args={[0x050508]} />
           <ambientLight intensity={0.2} />
+          <AutoCamera cellSize={cellSize} gridSize={GRID_SIZE} />
           <OrbitControls makeDefault enablePan={false} maxPolarAngle={Math.PI * 0.49} />
           {showStats ? <Stats /> : null}
 
-          {floatRTSupported ? (
+          {floatRTSupported && !forcedUnsupported ? (
             <>
-                  <NeonLifeSim
+              <NeonLifeSim
                 gridSize={GRID_SIZE}
-                onTexture={(tex) => {
-                  setStateTexture(tex)
-                  setPartial({ hasStateTexture: !!tex })
+                onTexture={tex => {
+                  setStateTexture(tex);
+                  setPartial({ hasStateTexture: !!tex });
                 }}
                 brushDownRef={brushDownRef}
                 brushUvRef={brushUvRef}
               />
 
-              {stateTexture ? <NeonCity gridSize={GRID_SIZE} stateTexture={stateTexture} cellSize={cellSize} /> : null}
+              {stateTexture ? (
+                <NeonCity gridSize={GRID_SIZE} stateTexture={stateTexture} cellSize={cellSize} />
+              ) : null}
             </>
           ) : null}
 
           <mesh
             rotation={[-Math.PI / 2, 0, 0]}
             position={[0, 0, 0]}
-            onPointerDown={(e) => {
-              brushDownRef.current = true
+            onPointerDown={e => {
+              brushDownRef.current = true;
               // Invert Y because texture v-space (0..1) in shader assumes bottom-left origin
               // while pointer UV may use top-left depending on camera/geometry orientation.
-              const ux = e.uv?.x ?? 0.5
-              const uy = e.uv?.y ?? 0.5
-              brushUvRef.current.set(ux, 1 - uy)
+              const ux = e.uv?.x ?? 0.5;
+              const uy = e.uv?.y ?? 0.5;
+              brushUvRef.current.set(ux, 1 - uy);
             }}
             onPointerUp={() => {
-              brushDownRef.current = false
+              brushDownRef.current = false;
             }}
-            onPointerMove={(e) => {
-              if (!brushDownRef.current) return
-              const ux = e.uv?.x ?? 0.5
-              const uy = e.uv?.y ?? 0.5
-              brushUvRef.current.set(ux, 1 - uy)
+            onPointerMove={e => {
+              if (!brushDownRef.current) return;
+              const ux = e.uv?.x ?? 0.5;
+              const uy = e.uv?.y ?? 0.5;
+              brushUvRef.current.set(ux, 1 - uy);
             }}
           >
             <planeGeometry args={[GRID_SIZE * cellSize, GRID_SIZE * cellSize]} />
@@ -240,7 +289,9 @@ export function NeonMicroCityDemo() {
         </Canvas>
       </div>
 
+      {!floatRTSupported || forcedUnsupported ? <UnsupportedOverlay /> : null}
+
       <Hud gridSize={GRID_SIZE} />
     </>
-  )
+  );
 }
